@@ -1,55 +1,124 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { UserStateType } from '../../../types/userTypes';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { checkUserThunk, loginThunk, logoutThunk, signUpThunk } from './authThunks';
 
-type AuthState = { accessToken: string; user: UserStateType; error: string };
-const initialState: AuthState = { accessToken: '', user: { status: 'pending' }, error: '' };
+// ✅ ОПРЕДЕЛЯЕМ ТИПЫ в соответствии с Navbar
+type UserStatus = 'guest' | 'pending' | 'logged';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  status: UserStatus;
+}
+
+interface AuthState {
+  accessToken: string | null;
+  user: User | { status: 'guest' } | { status: 'pending' }; // ✅ Соответствует UserStateType
+  isAuthenticated: boolean;
+  error: string | null;
+}
+
+const initialState: AuthState = {
+  accessToken: localStorage.getItem('accessToken'),
+  user: { status: 'guest' }, // ✅ Начальное состояние с status
+  isAuthenticated: false,
+  error: null,
+};
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setError: (state) => {
-      state.error = '';
+    setCredentials: (state, action: PayloadAction<{ accessToken: string; user: User }>) => {
+      state.accessToken = action.payload.accessToken;
+      state.user = { ...action.payload.user, status: 'logged' as const }; // ✅ Добавляем status
+      state.isAuthenticated = true;
+      state.error = null;
+      localStorage.setItem('accessToken', action.payload.accessToken);
+    },
+    updateToken: (state, action: PayloadAction<string>) => {
+      state.accessToken = action.payload;
+      localStorage.setItem('accessToken', action.payload);
+    },
+    logout: (state) => {
+      state.accessToken = null;
+      state.user = { status: 'guest' }; // ✅ Сбрасываем к guest
+      state.isAuthenticated = false;
+      state.error = null;
+      localStorage.removeItem('accessToken');
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(checkUserThunk.pending, (state, action) => {
-        state.user.status = 'pending';
+      // ✅ Обработка pending состояний
+      .addCase(checkUserThunk.pending, (state) => {
+        state.user = { status: 'pending' };
+        state.loading = true;
       })
+      .addCase(loginThunk.pending, (state) => {
+        state.user = { status: 'pending' };
+        state.loading = true;
+      })
+      .addCase(signUpThunk.pending, (state) => {
+        state.user = { status: 'pending' };
+        state.loading = true;
+      })
+      // ✅ Обработка успешных запросов
       .addCase(checkUserThunk.fulfilled, (state, action) => {
+        state.user = { ...action.payload.user, status: 'logged' as const };
         state.accessToken = action.payload.accessToken;
-        state.user = { ...action.payload.user, status: 'logged' };
-      })
-      .addCase(checkUserThunk.rejected, (state, action) => {
-        state.accessToken = '';
-        state.user = { status: 'guest' };
-      })
-      .addCase(signUpThunk.fulfilled, (state, action) => {
-        state.accessToken = action.payload.accessToken;
-        state.user = { ...action.payload.user, status: 'logged' };
-      })
-      .addCase(signUpThunk.rejected, (state, action) => {
-        state.error = action.payload as string;
-        state.accessToken = '';
-        state.user = { status: 'guest' };
+        state.isAuthenticated = true;
+        state.loading = false;
+        state.error = null;
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
+        state.user = { ...action.payload.user, status: 'logged' as const };
         state.accessToken = action.payload.accessToken;
-        state.user = { ...action.payload.user, status: 'logged' };
+        state.isAuthenticated = true;
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(signUpThunk.fulfilled, (state, action) => {
+        state.user = { ...action.payload.user, status: 'logged' as const };
+        state.accessToken = action.payload.accessToken;
+        state.isAuthenticated = true;
+        state.loading = false;
+        state.error = null;
+      })
+      // ✅ Обработка ошибок
+      .addCase(checkUserThunk.rejected, (state) => {
+        state.user = { status: 'guest' };
+        state.isAuthenticated = false;
+        state.loading = false;
       })
       .addCase(loginThunk.rejected, (state, action) => {
-        state.accessToken = '';
         state.user = { status: 'guest' };
+        state.isAuthenticated = false;
+        state.loading = false;
+        state.error = action.payload as string;
       })
-      .addCase(logoutThunk.fulfilled, (state, action) => {
-        state.accessToken = '';
+      .addCase(signUpThunk.rejected, (state, action) => {
         state.user = { status: 'guest' };
+        state.isAuthenticated = false;
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // ✅ Обработка логаута
+      .addCase(logoutThunk.fulfilled, (state) => {
+        state.accessToken = null;
+        state.user = { status: 'guest' };
+        state.isAuthenticated = false;
+        state.loading = false;
+        state.error = null;
       });
   },
 });
 
-export const { setError } = authSlice.actions;
-
+export const { setCredentials, updateToken, logout, setError, clearError } = authSlice.actions;
 export default authSlice.reducer;

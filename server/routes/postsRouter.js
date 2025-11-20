@@ -1,9 +1,9 @@
 const express = require('express');
 const { Post } = require('../db/models');
 
-const router = express.Router();
+const postsRouter = express.Router();
 
-router
+postsRouter
   .route('/')
   .get(async (req, res) => {
     try {
@@ -24,7 +24,7 @@ router
     }
   });
 
-router
+  postsRouter
   .route('/:id')
   .delete(async (req, res) => {
     try {
@@ -41,4 +41,4 @@ router
     res.json(updatedPost);
   });
 
-module.exports = router;
+module.exports = postsRouter;

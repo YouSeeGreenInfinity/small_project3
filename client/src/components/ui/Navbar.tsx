@@ -2,16 +2,26 @@ import { AppBar, Box, Button, Link, Typography } from '@mui/material';
 import Toolbar from '@mui/material/Toolbar';
 import React from 'react';
 import { Link as NavLink } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks'; // ✅ ДОБАВЛЕН ИМПОРТ
 import { logoutThunk } from '../../redux/slices/auth/authThunks';
 
 export default function Navbar(): JSX.Element {
   const user = useAppSelector((store) => store.auth.user);
   const dispatch = useAppDispatch();
 
+  // ✅ ДЕТАЛЬНАЯ ОТЛАДКА
+  console.log('🔐 Navbar - full auth state:', useAppSelector((store) => store.auth));
+  console.log('🔐 Navbar - user object:', user);
+  console.log('🔐 Navbar - user status:', user?.status);
+  console.log('🔐 Navbar - username:', (user as any)?.username);
+
+  // ✅ БЕЗОПАСНЫЙ ДОСТУП
+  const userStatus = user?.status || 'guest';
+  const username = (user as any)?.username || '';
+
   const links = [
     { to: '/counter', name: 'Counter' },
-    ...(user.status === 'logged'
+    ...(userStatus === 'logged'
       ? [
           { to: '/posts', name: 'My Posts' },
           { to: '/cats', name: 'My Cats' },
@@ -29,7 +39,7 @@ export default function Navbar(): JSX.Element {
       <AppBar position="static" sx={{ background: '#008080' }}>
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box>
-            <Typography>Hello, {user.status === 'logged' ? user.username : 'guest'}</Typography>
+            <Typography>Hello, {userStatus === 'logged' ? username : 'guest'}</Typography>
           </Box>
           <Box>
             {links.map((link) => (
@@ -42,7 +52,7 @@ export default function Navbar(): JSX.Element {
                 {link.name}
               </Link>
             ))}
-            {user.status === 'logged' && (
+            {userStatus === 'logged' && (
               <Button variant="text" color="inherit" onClick={() => void dispatch(logoutThunk())}>
                 Logout
               </Button>

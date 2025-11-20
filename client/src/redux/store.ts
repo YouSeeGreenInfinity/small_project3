@@ -1,8 +1,11 @@
+// store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/auth/authSlice';
 import catsReducer from './slices/cats/catsSlice';
 import counterReducer from './slices/counter/counterSlice';
 import postsReducer from './slices/posts/postsSlice';
+import likeReducer from './slices/like/likeSlice';
+import errorReducer from './slices/errorSlice'; 
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +13,8 @@ export const store = configureStore({
     cats: catsReducer,
     posts: postsReducer,
     auth: authReducer,
+    like: likeReducer, 
+    error: errorReducer, 
   },
 });
 
