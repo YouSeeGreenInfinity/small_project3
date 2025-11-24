@@ -25,6 +25,18 @@ function PostCard({ post }: PostCardPropsType): JSX.Element {
   // Получаем данные из Redux store
   const user = useAppSelector((store) => store.auth.user);
   const { likedProductIds, likesCount, loading } = useAppSelector((store) => store.like);
+
+  // ✅ ДОБАВИМ ОТЛАДКУ ДЛЯ ПРОВЕРКИ ДАННЫХ
+  console.log('🔍 PostCard Debug:', {
+    postId: post.id,
+    postData: post,
+    userData: user,
+    hasUserId: 'userId' in post,
+    hasUser: 'User' in post,
+    postUserId: post.userId,
+    postUser: post.User,
+    currentUserId: user.id
+  });
   
   // Проверяем лайки
   const isLiked = likedProductIds.includes(post.id);

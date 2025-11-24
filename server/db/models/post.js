@@ -10,12 +10,24 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      // ✅ ДОБАВИТЬ АССОЦИАЦИЮ С USER
+      Post.belongsTo(models.User, {
+        foreignKey: 'userId',
+        as: 'User' // псевдоним для включения в запросы
+      });
     }
   }
   Post.init({
     title: DataTypes.STRING,
-    body: DataTypes.STRING
+    body: DataTypes.STRING,
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users', // имя таблицы
+        key: 'id'
+      }
+    }
   }, {
     sequelize,
     modelName: 'Post',

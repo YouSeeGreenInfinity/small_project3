@@ -35,6 +35,7 @@ const catsRouter = require('./routes/catsRouter');
 const userRouter = require('./routes/userRouter');
 const tokensRouter = require('./routes/tokensRouter');
 const likeRouter = require('./routes/likeRouter');
+const verifyAccessToken = require('./middlewares/verifyAccessToken');
 
 
 require('dotenv').config();
@@ -54,7 +55,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Подключение роутеров
-app.use('/api/posts', postsRouter);
+app.use('/api/posts', verifyAccessToken, postsRouter);
 app.use('/api/cats', catsRouter);
 app.use('/api/auth', userRouter);
 app.use('/api/tokens', tokensRouter);

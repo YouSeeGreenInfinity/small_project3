@@ -12,21 +12,56 @@ function PostForm(): JSX.Element {
     setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log('🔄 PostForm submitting:', {
+      formData: input,
+      hasTitle: !!input.title,
+      hasBody: !!input.body,
+      timestamp: new Date().toISOString()
+    });
+
+    // ✅ ИСПРАВЛЕННЫЙ КОД:
+    dispatch(addPostThunk(input))
+      .unwrap()
+      .then(() => {
+        console.log('✅ Post created successfully!');
+        setInput({ title: '', body: '' });
+      })
+      .catch((error) => {
+        console.log('❌ Post creation failed:', error);
+      });
+  };
+
   return (
     <Box
       display="flex"
       justifyContent="center"
       component="form"
       my={5}
-      onSubmit={(e) => {
-        e.preventDefault();
-        void dispatch(addPostThunk(input));
-        setInput({ title: '', body: '' });
-      }}
+      onSubmit={handleSubmit}
+      sx={{ gap: 2 }}
     >
-      <TextField name="title" value={input.title} onChange={changeHandler} />
-      <TextField name="body" value={input.body} onChange={changeHandler} />
-      <Button type="submit">submit</Button>
+      <TextField 
+        name="title" 
+        value={input.title} 
+        onChange={changeHandler}
+        label="Title"
+        required
+      />
+      <TextField 
+        name="body" 
+        value={input.body} 
+        onChange={changeHandler}
+        label="Content"
+        required
+        multiline
+        rows={2}
+      />
+      <Button type="submit" variant="contained">
+        Create Post
+      </Button>
     </Box>
   );
 }

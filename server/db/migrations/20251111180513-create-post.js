@@ -15,6 +15,10 @@ module.exports = {
       body: {
         type: Sequelize.STRING
       },
+      userId: { // ✅ ДОБАВИТЬ СЮДА
+        type: Sequelize.INTEGER,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
