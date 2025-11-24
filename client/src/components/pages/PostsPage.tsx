@@ -145,11 +145,97 @@
 
 
 // components/pages/PostsPage.tsx
+// import { Box, Snackbar, Alert } from '@mui/material';
+// import React, { useEffect, useState } from 'react';
+// import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+// import { getBatchLikesThunk, getUserLikesThunk } from '../../redux/slices/like/likeThunks';
+// import { clearError } from '../../redux/slices/like/likeSlice';
+// import EditModal from '../ui/EditModal';
+// import PostCard from '../ui/PostCard';
+// import PostForm from '../ui/PostForm';
+
+// export default function PostsPage(): JSX.Element {
+//   const dispatch = useAppDispatch();
+//   const posts = useAppSelector((store) => store.posts.posts);
+//   const isAuthenticated = useAppSelector((store) => store.auth.user.status === 'logged');
+  
+//   // Типизированные селекторы
+//   const likesError = useAppSelector((store) => store.like.error);
+//   const likesLoading = useAppSelector((store) => store.like.loading);
+
+//   const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+//   // Автоматически показываем snackbar при ошибке
+//   useEffect(() => {
+//     if (likesError) {
+//       setSnackbarOpen(true);
+//     }
+//   }, [likesError]);
+
+//   // Загружаем лайки при монтировании
+//   useEffect(() => {
+//     if (isAuthenticated) {
+//       void dispatch(getUserLikesThunk());
+//     }
+    
+//     if (posts.length > 0) {
+//       const postIds = posts.map(post => post.id);
+//       void dispatch(getBatchLikesThunk(postIds));
+//     }
+//   }, [dispatch, isAuthenticated, posts.length]);
+
+//   const handleCloseSnackbar = (): void => {
+//     setSnackbarOpen(false);
+//     dispatch(clearError()); // Очищаем ошибку в store
+//   };
+
+//   return (
+//     <>
+//       <PostForm />
+      
+//       {/* Показываем индикатор загрузки если нужно */}
+//       {likesLoading && (
+//         <Box display="flex" justifyContent="center" sx={{ mt: 2 }}>
+//           <Alert severity="info">Loading likes...</Alert>
+//         </Box>
+//       )}
+      
+//       <Box display="flex" flexWrap="wrap" justifyContent="center" sx={{ mt: 2 }}>
+//         {posts.map((post) => (
+//           <Box key={post.id} mr={3} mb={3}>
+//             <PostCard post={post} />
+//           </Box>
+//         ))}
+//       </Box>
+      
+//       {/* Snackbar для ошибок */}
+//       <Snackbar
+//         open={snackbarOpen}
+//         autoHideDuration={6000}
+//         onClose={handleCloseSnackbar}
+//         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+//       >
+//         <Alert 
+//           onClose={handleCloseSnackbar} 
+//           severity="error" 
+//           sx={{ width: '100%' }}
+//         >
+//           {likesError}
+//         </Alert>
+//       </Snackbar>
+
+//       <EditModal />
+//     </>
+//   );
+// }
+
+
 import { Box, Snackbar, Alert } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { getBatchLikesThunk, getUserLikesThunk } from '../../redux/slices/like/likeThunks';
 import { clearError } from '../../redux/slices/like/likeSlice';
+import { getPostsThunk } from '../../redux/slices/posts/postsThunks'; // ✅ ДОБАВИТЬ ЭТОТ ИМПОРТ
 import EditModal from '../ui/EditModal';
 import PostCard from '../ui/PostCard';
 import PostForm from '../ui/PostForm';
@@ -172,21 +258,28 @@ export default function PostsPage(): JSX.Element {
     }
   }, [likesError]);
 
-  // Загружаем лайки при монтировании
+  // ✅ ИСПРАВЛЕННЫЙ useEffect: загружаем посты при монтировании
   useEffect(() => {
+    // Загружаем посты
+    void dispatch(getPostsThunk());
+    
+    // Загружаем лайки если пользователь авторизован
     if (isAuthenticated) {
       void dispatch(getUserLikesThunk());
     }
-    
+  }, [dispatch, isAuthenticated]);
+
+  // ✅ ОТДЕЛЬНЫЙ useEffect для загрузки лайков когда посты обновляются
+  useEffect(() => {
     if (posts.length > 0) {
       const postIds = posts.map(post => post.id);
       void dispatch(getBatchLikesThunk(postIds));
     }
-  }, [dispatch, isAuthenticated, posts.length]);
+  }, [dispatch, posts]); // ✅ Зависимость от posts, а не posts.length
 
   const handleCloseSnackbar = (): void => {
     setSnackbarOpen(false);
-    dispatch(clearError()); // Очищаем ошибку в store
+    dispatch(clearError());
   };
 
   return (
