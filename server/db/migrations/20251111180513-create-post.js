@@ -15,17 +15,30 @@ module.exports = {
       body: {
         type: Sequelize.STRING
       },
-      userId: { // ✅ ДОБАВИТЬ СЮДА
+      userId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { // ✅ ЛУЧШЕ ДОБАВИТЬ ССЫЛКУ НА ТАБЛИЦУ USERS
+          model: 'Users',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      published: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false, // ✅ defaultValue ДОЛЖЕН БЫТЬ ЗДЕСЬ
         allowNull: false
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') // ✅ defaultValue ДОЛЖЕН БЫТЬ ЗДЕСЬ
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') // ✅ defaultValue ДОЛЖЕН БЫТЬ ЗДЕСЬ
       }
     });
   },

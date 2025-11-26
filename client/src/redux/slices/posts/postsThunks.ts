@@ -86,3 +86,18 @@ export const editPostThunk = createAsyncThunk<
     }
   }
 );
+
+export const publishPostThunk = createAsyncThunk<
+  PostType, // возвращаемый тип
+  PostType['id'] // тип аргумента (id поста)
+>(
+  'posts/publishPost',
+  async (postId, { rejectWithValue }) => {
+    try {
+      const response = await postsService.publishPost(postId);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to publish post');
+    }
+  }
+);

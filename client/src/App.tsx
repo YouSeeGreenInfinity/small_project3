@@ -281,8 +281,8 @@
 // Этот код демонстрирует хорошо структурированное React-приложение, использующее современные инструменты и практики для управления состоянием, маршрутизацией
 // и безопасностью. Он использует преимущества TypeScript для обеспечения безопасности типов и предотвращения ошибок.
 
-
-import React, { useEffect } from 'react';
+// ОБРАТИ ВНИМАНИЕ ЕЩЁ РАЗ НА USEMEMO!!!! КАК ЕГО МОЖНО ИСПОЛЬЗОВАТЬ!!!!!!!НАКОНЕЦ УДАЛОСЬ ЕГО ТАК ИСПОЛЬЗОВАТЬ!!!!!
+import React, { useEffect, useMemo } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
 import PrivateRouter from './components/hocs/PrivateRouter';
@@ -329,7 +329,68 @@ function App(): JSX.Element {
     }
   }, [dispatch, user]); // ✅ Изменили зависимость на user
 
-  // ✅ ИСПРАВЛЕНО: безопасная проверка статуса загрузки
+   // ✅ ИСПРАВЛЕНО: безопасное получение статуса пользователя
+  const userStatus = user?.status || 'guest';
+  const isAdmin = userStatus === 'logged' && user?.username === 'admin';
+
+  // ✅ ИСПРАВЛЕН СИНТАКСИС: useMemo правильно обернут
+  const router = useMemo(() => {
+    console.log('🔄 Recreating router, isAdmin:', isAdmin);
+    console.log('👤 User status:', userStatus);
+    console.log('👤 Username:', user?.username);
+    
+    return createBrowserRouter([
+      {
+        path: '/',
+        element: <Root />,
+        errorElement: <ErrorPage />,
+        children: [
+          { path: '/', element: <IndexPage /> },
+          {
+            path: '/admin',
+            element: (
+              <PrivateRouter isAllowed={isAdmin}>
+                <AdminPage />
+              </PrivateRouter>
+            ),
+          },
+          {
+            element: <PrivateRouter isAllowed={userStatus === 'logged'} redirect="/login" />,
+            children: [
+              {
+                path: '/posts',
+                element: <PostsPage />,
+              },
+              { path: '/cats', element: <CatsPage /> },
+              { path: '/stats', element: <StatisticsPage /> },
+            ],
+          },
+          {
+            path: '/counter',
+            element: <CounterPage />,
+          },
+          {
+            path: '/index_page',
+            element: <IndexPage />,
+          },
+          {
+            element: <PrivateRouter isAllowed={userStatus === 'guest'} />,
+            children: [
+              {
+                path: '/signup',
+                element: <AuthPage />,
+              },
+              {
+                path: '/login',
+                element: <AuthPage />,
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  }, [isAdmin, userStatus, user?.username]); // ✅ Добавлены зависимости
+
   const isLoading = authLoading || (user?.status === 'pending');
   
   if (isLoading) {
@@ -339,57 +400,6 @@ function App(): JSX.Element {
       </Box>
     );
   }
-
-  // ✅ ИСПРАВЛЕНО: безопасное получение статуса пользователя
-  const userStatus = user?.status || 'guest';
-  const isAdmin = userStatus === 'logged' && user?.username === 'admin';
-
-  const router = createBrowserRouter([
-    {
-      path: '/',
-      element: <Root />,
-      errorElement: <ErrorPage />,
-      children: [
-        { path: '/', element: <IndexPage /> },
-        {
-          path: '/admin',
-          element: (
-            <PrivateRouter isAllowed={isAdmin}>
-              <AdminPage />
-            </PrivateRouter>
-          ),
-        },
-        {
-          element: <PrivateRouter isAllowed={userStatus === 'logged'} redirect="/login" />,
-          children: [
-            {
-              path: '/posts',
-              element: <PostsPage />,
-            },
-            { path: '/cats', element: <CatsPage /> },
-            { path: '/stats', element: <StatisticsPage /> },
-          ],
-        },
-        {
-          path: '/counter',
-          element: <CounterPage />,
-        },
-        {
-          element: <PrivateRouter isAllowed={userStatus === 'guest'} />,
-          children: [
-            {
-              path: '/signup',
-              element: <AuthPage />,
-            },
-            {
-              path: '/login',
-              element: <AuthPage />,
-            },
-          ],
-        },
-      ],
-    },
-  ]);
 
   return <RouterProvider router={router} />;
 }

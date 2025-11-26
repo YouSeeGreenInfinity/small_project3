@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Users', // имя таблицы
         key: 'id'
       }
+    },
+    published: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false, // по умолчанию не опубликован
+      allowNull: false
     }
   }, {
     sequelize,

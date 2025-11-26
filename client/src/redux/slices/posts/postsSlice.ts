@@ -46,7 +46,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PostType } from '../../../types/postTypes';
-import { addPostThunk, deletePostThunk, editPostThunk, getPostsThunk } from './postsThunks';
+import { addPostThunk, deletePostThunk, editPostThunk, getPostsThunk, publishPostThunk } from './postsThunks';
 
 interface PostsState { 
   posts: PostType[]; 
@@ -138,7 +138,39 @@ const postsSlice = createSlice({
       .addCase(editPostThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
+      })     
+      .addCase(publishPostThunk.fulfilled, (state, action) => {
+        if (!action.payload) {
+          console.error('❌ publishPostThunk.fulfilled: action.payload is undefined');
+          state.loading = false;
+          return;
+        }
+
+        // ✅ ПРОВЕРЬ ЧТО action.payload СОДЕРЖИТ id
+        console.log('🔄 Updating post in state:', action.payload);
+
+
+  // Находим пост и обновляем его статус
+ const index = state.posts.findIndex((post) => post.id === action.payload.id);
+  if (index !== -1) {
+    state.posts[index] = action.payload;
+    console.log('✅ Post updated in state:', action.payload.id);
+  } else {
+    console.log('⚠️ Post not found in state:', action.payload.id);
+  }
+  state.loading = false;
+  state.error = null;
+})
+.addCase(publishPostThunk.pending, (state) => {
+  state.loading = true;
+  state.error = null;
+})
+.addCase(publishPostThunk.rejected, (state, action) => {
+  state.loading = false;
+  state.error = action.payload as string;
+  console.error('❌ Publish post failed:', action.payload);
+})
+
   },
 });
 

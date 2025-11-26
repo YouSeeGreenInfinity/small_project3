@@ -1,10 +1,33 @@
+// export type PostType = {
+//   id: number;
+//   title: string;
+//   body: string;
+// };
+
 export type PostType = {
   id: number;
   title: string;
   body: string;
+  userId: number;
+  published: boolean; // добавил для кнопки опубликовать
+  createdAt: string;
+  updatedAt: string;
+  User?: {
+    username: string;
+  };
 };
 
-export type PostFormType = Omit<PostType, 'id'>;
+// старый вариант 
+// export type PostFormType = Omit<PostType, 'id'>;
+
+// // с Omit:
+// export type PostFormType = Omit<PostType, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'User'>;
+
+export type PostFormType = {
+  title: string;
+  body: string;
+  published?: boolean;
+};
 
 export type PostHandlersType = {
   deleteHandler: (id: PostType['id']) => Promise<void>;

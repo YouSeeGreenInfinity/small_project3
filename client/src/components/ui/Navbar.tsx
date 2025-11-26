@@ -20,6 +20,7 @@ export default function Navbar(): JSX.Element {
   const username = (user as any)?.username || '';
 
   const links = [
+    { to: '/index_page', name: 'Index Page' },
     { to: '/counter', name: 'Counter' },
     ...(userStatus === 'logged'
       ? [
