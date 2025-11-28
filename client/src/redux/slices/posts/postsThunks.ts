@@ -34,16 +34,29 @@
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import postsService from '../../../services/postsService';
-import type { PostFormType, PostType } from '../../../types/postTypes';
+import type { PostFormType, PostsResponse, PostType } from '../../../types/postTypes';
 
+// ✅ ДЛЯ POSTS PAGE (бесконечный скролл)
 export const getPostsThunk = createAsyncThunk<PostType[]>(
   'posts/getPosts', 
   async (_, { rejectWithValue }) => {
     try {
-      const data = await postsService.getPosts();
+      const data = await postsService.getPosts(1, 10);
       return data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to get posts');
+    }
+  }
+);
+
+export const getMorePostsThunk = createAsyncThunk<PostType[], number>(
+  'posts/getMorePosts',
+  async (page, { rejectWithValue }) => {
+    try {
+      const data = await postsService.getPosts(page, 10);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to get more posts');
     }
   }
 );
@@ -88,16 +101,34 @@ export const editPostThunk = createAsyncThunk<
 );
 
 export const publishPostThunk = createAsyncThunk<
-  PostType, // возвращаемый тип
-  PostType['id'] // тип аргумента (id поста)
+  PostType,
+  PostType['id']
 >(
   'posts/publishPost',
   async (postId, { rejectWithValue }) => {
     try {
-      const response = await postsService.publishPost(postId);
-      return response.data;
+      const data = await postsService.publishPost(postId); // ✅ ПРАВИЛЬНО
+      console.log('✅ publishPostThunk received data:', data);
+      return data; // ✅ возвращаем данные напрямую
     } catch (error: any) {
+      console.error('❌ publishPostThunk error:', error);
       return rejectWithValue(error.response?.data?.error || 'Failed to publish post');
+    }
+  }  
+);
+
+// ✅ ДЛЯ INDEX PAGE (+пагинация!!!!)
+export const getPublishedPostsThunk = createAsyncThunk<
+  PostsResponse,
+  { page: number; limit: number }
+>(
+  'posts/getPublishedPosts',
+  async ({ page, limit }, { rejectWithValue }) => {
+    try {
+      const data = await postsService.getPublishedPosts(page, limit);
+      return data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to get posts');
     }
   }
 );

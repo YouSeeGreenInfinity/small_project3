@@ -265,8 +265,7 @@ function PostCard({ post }: PostCardPropsType): JSX.Element {
     void dispatch(publishPostThunk(post.id))
       .unwrap()
       .then((updatedPost) => {
-        console.log('✅ Post published successfully in component:', updatedPost);
-        console.log('✅ Post published status:', updatedPost.published);
+        console.log('✅ Post published successfully:', updatedPost);
       })
       .catch((error) => {
         console.log('❌ Publish failed:', error);

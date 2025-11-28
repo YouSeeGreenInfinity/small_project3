@@ -38,3 +38,10 @@ export type PostsActionType =
   | { type: 'SET_POSTS'; payload: PostType[] }
   | { type: 'DELETE_POST'; payload: PostType['id'] }
   | { type: 'ADD_POST'; payload: PostType };
+
+  export type PostsResponse = {
+    posts: PostType[];
+    totalPages: number;
+    currentPage: number;
+    totalPosts: number;
+  };

@@ -54,6 +54,42 @@ class PostsService {
   }
 
 
+  // async publishPost(id: PostType['id']): Promise<PostType> {
+  //   try {
+  //     console.log('🔄 Publishing post:', id);
+  //     const response = await this.apiInstance.patch<PostType>(`/posts/${id}/publish`);
+  //     console.log('✅ Post published successfully, response:', response.data);
+      
+  //     // ✅ ПРОВЕРЬ ЧТО В ОТВЕТЕ ЕСТЬ id
+  //     if (!response.data.id) {
+  //       throw new Error('Invalid response: post id is missing');
+  //     }
+      
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('❌ Publish post error:', error);
+  //     return Promise.reject(error);
+  //   }
+  // }
+
+  // async publishPost(id: PostType['id']): Promise<PostType> {
+  //   try {
+  //     console.log('🔄 Publishing post:', id);
+  //     const response = await this.apiInstance.patch<PostType>(`/posts/${id}/publish`);
+  //     console.log('✅ Post published successfully, response:', response.data);
+      
+  //     // ✅ ПРОВЕРЬ ЧТО В ОТВЕТЕ ЕСТЬ id
+  //     if (!response.data.id) {
+  //       throw new Error('Invalid response: post id is missing');
+  //     }
+      
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('❌ Publish post error:', error);
+  //     return Promise.reject(error);
+  //   }
+  // }
+
   async publishPost(id: PostType['id']): Promise<PostType> {
     try {
       console.log('🔄 Publishing post:', id);
@@ -65,12 +101,27 @@ class PostsService {
         throw new Error('Invalid response: post id is missing');
       }
       
-      return response.data;
+      return response.data; // ✅ возвращаем данные
     } catch (error) {
       console.error('❌ Publish post error:', error);
       return Promise.reject(error);
     }
   }
+
+  // для пагинации!!! возможно, что лучше переименовать
+async getPublishedPosts(page: number = 1, limit: number = 6): Promise<PostsResponse> {
+  try {
+    console.log(`🔄 Fetching published posts page ${page}, limit ${limit}`);
+    const response = await this.apiInstance.get<PostsResponse>(
+      `/posts/published?page=${page}&limit=${limit}`
+    );
+    console.log('✅ Published posts fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Get published posts error:', error);
+    return Promise.reject(error);
+  }
+}
 
 }
 

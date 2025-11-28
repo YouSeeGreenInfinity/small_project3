@@ -31,7 +31,7 @@
 //         user: req.user, // ← что здесь?
 //         headers: req.headers
 //       });
-      
+
 //       // ✅ Добавить проверку авторизации
 //       if (!req.user) {
 //         console.log('❌ No user in request');
@@ -61,7 +61,7 @@
 //       }
 
 //       const post = await Post.findByPk(req.params.id);
-      
+
 //       if (!post) {
 //         return res.status(404).json({ error: 'Post not found' });
 //       }
@@ -86,7 +86,7 @@
 //       }
 
 //       const post = await Post.findByPk(req.params.id);
-      
+
 //       if (!post) {
 //         return res.status(404).json({ error: 'Post not found' });
 //       }
@@ -107,9 +107,9 @@
 
 // module.exports = postsRouter;
 
-const express = require('express');
-const { Post, User } = require('../db/models');
-const verifyAccessToken = require('../middlewares/verifyAccessToken'); // ✅ ДОБАВЬ ЭТОТ ИМПОРТ
+const express = require("express");
+const { Post, User } = require("../db/models");
+const verifyAccessToken = require("../middlewares/verifyAccessToken"); // ✅ ДОБАВЬ ЭТОТ ИМПОРТ
 
 const postsRouter = express.Router();
 
@@ -117,18 +117,18 @@ const postsRouter = express.Router();
 postsRouter.use(verifyAccessToken);
 
 postsRouter
-  .route('/')
+  .route("/")
   .get(async (req, res) => {
     try {
       const posts = await Post.findAll({
         include: [
           {
             model: User,
-            as: 'User',
-            attributes: ['id', 'username', 'email'],
+            as: "User",
+            attributes: ["id", "username", "email"],
           },
         ],
-        order: [['createdAt', 'DESC']],
+        order: [["createdAt", "DESC"]],
       });
       res.json(posts);
     } catch (error) {
@@ -138,115 +138,120 @@ postsRouter
   })
   .post(async (req, res) => {
     try {
-      console.log('📝 CREATE POST REQUEST:', {
+      console.log("📝 CREATE POST REQUEST:", {
         body: req.body,
         user: req.user,
-        headers: req.headers
+        headers: req.headers,
       });
-      
+
       // ✅ Проверка авторизации (уже есть благодаря мидлваре)
       if (!req.user) {
-        console.log('❌ No user in request');
-        return res.status(401).json({ error: 'Not authorized' });
+        console.log("❌ No user in request");
+        return res.status(401).json({ error: "Not authorized" });
       }
 
       const newPost = await Post.create({
         ...req.body,
-        userId: req.user.id
+        userId: req.user.id,
       });
 
-      console.log('✅ Post created:', newPost.toJSON());
+      console.log("✅ Post created:", newPost.toJSON());
       res.status(201).json(newPost);
     } catch (error) {
-      console.error('❌ Post creation error:', error);
+      console.error("❌ Post creation error:", error);
       res.sendStatus(500);
     }
   });
 
 // ✅ ИСПРАВЛЕННЫЙ ЭНДПОИНТ ПУБЛИКАЦИИ
-postsRouter.patch('/:id/publish', async (req, res) => {
+postsRouter.patch("/:id/publish", async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    console.log('📝 PUBLISH POST REQUEST:', { 
-      postId: id, 
-      userId: userId
+    console.log("📝 PUBLISH POST REQUEST:", {
+      postId: id,
+      userId,
     });
 
     // ✅ ИСПРАВЛЕНО: убрали include или добавили правильный 'as'
     const post = await Post.findByPk(id);
-    
+
     if (!post) {
-      console.log('❌ Post not found:', id);
-      return res.status(404).json({ error: 'Post not found' });
+      console.log("❌ Post not found:", id);
+      return res.status(404).json({ error: "Post not found" });
     }
 
-    console.log('🔍 Post found:', {
+    console.log("🔍 Post found:", {
       id: post.id,
       title: post.title,
       authorId: post.userId,
-      currentUserId: userId
+      currentUserId: userId,
     });
 
     // Проверяем, что пользователь - автор поста
     if (post.userId !== userId) {
-      console.log('🚫 Unauthorized publish attempt');
-      return res.status(403).json({ error: 'You can only publish your own posts' });
+      console.log("🚫 Unauthorized publish attempt");
+      return res
+        .status(403)
+        .json({ error: "You can only publish your own posts" });
     }
 
     // Обновляем статус публикации
-    console.log('🔄 Updating post published status...');
-    const updatedPost = await post.update({ 
-      published: true
+    console.log("🔄 Updating post published status...");
+    const updatedPost = await post.update({
+      published: true,
     });
 
     // ✅ ИСПРАВЛЕНО: получаем обновленный пост с пользователем (с правильным 'as')
     const result = await Post.findByPk(updatedPost.id, {
-      include: [{
-        model: User,
-        as: 'User', // ✅ ДОБАВЬ 'as' с тем же псевдонимом что в ассоциации
-        attributes: ['id', 'username', 'email']
-      }]
+      include: [
+        {
+          model: User,
+          as: "User", // ✅ ДОБАВЬ 'as' с тем же псевдонимом что в ассоциации
+          attributes: ["id", "username", "email"],
+        },
+      ],
     });
 
-    console.log('✅ Post published successfully:', {
+    console.log("✅ Post published successfully:", {
       id: result.id,
       title: result.title,
       published: result.published,
-      author: result.User.username
+      author: result.User.username,
     });
 
     res.json(result);
-
   } catch (error) {
-    console.error('❌ Publish post error:', error);
-    console.error('Error details:', error.message);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
+    console.error("❌ Publish post error:", error);
+    console.error("Error details:", error.message);
+    res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
     });
   }
 });
 
 postsRouter
-  .route('/:id')
+  .route("/:id")
   .delete(async (req, res) => {
     try {
       // Проверка авторизации
       if (!req.user) {
-        return res.status(401).json({ error: 'Not authorized' });
+        return res.status(401).json({ error: "Not authorized" });
       }
 
       const post = await Post.findByPk(req.params.id);
-      
+
       if (!post) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
 
       // Проверяем, что пользователь является автором поста
       if (post.userId !== req.user.id) {
-        return res.status(403).json({ error: 'Not authorized to delete this post' });
+        return res
+          .status(403)
+          .json({ error: "Not authorized to delete this post" });
       }
 
       await Post.destroy({ where: { id: req.params.id } });
@@ -260,18 +265,20 @@ postsRouter
     try {
       // Проверка авторизации
       if (!req.user) {
-        return res.status(401).json({ error: 'Not authorized' });
+        return res.status(401).json({ error: "Not authorized" });
       }
 
       const post = await Post.findByPk(req.params.id);
-      
+
       if (!post) {
-        return res.status(404).json({ error: 'Post not found' });
+        return res.status(404).json({ error: "Post not found" });
       }
 
       // Проверяем, что пользователь является автором поста
       if (post.userId !== req.user.id) {
-        return res.status(403).json({ error: 'Not authorized to edit this post' });
+        return res
+          .status(403)
+          .json({ error: "Not authorized to edit this post" });
       }
 
       await Post.update(req.body, { where: { id: req.params.id } });
@@ -282,5 +289,41 @@ postsRouter
       res.sendStatus(500);
     }
   });
+
+postsRouter.get("/published", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const offset = (page - 1) * limit;
+
+    console.log(`📄 Fetching published posts: page ${page}, limit ${limit}`);
+
+    const { count, rows: posts } = await Post.findAndCountAll({
+      where: { published: true },
+      include: [
+        {
+          model: User,
+          as: "User",
+          attributes: ["id", "username", "email"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(count / limit);
+
+    res.json({
+      posts,
+      totalPages,
+      currentPage: page,
+      totalPosts: count,
+    });
+  } catch (error) {
+    console.error("❌ Get published posts error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = postsRouter;
