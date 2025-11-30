@@ -30,6 +30,11 @@ module.exports = {
         defaultValue: false, // ✅ defaultValue ДОЛЖЕН БЫТЬ ЗДЕСЬ
         allowNull: false
       },
+      deleted: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false   
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

@@ -6,6 +6,7 @@ import counterReducer from './slices/counter/counterSlice';
 import postsReducer from './slices/posts/postsSlice';
 import likeReducer from './slices/like/likeSlice';
 import errorReducer from './slices/errorSlice'; 
+import trashReducer from './slices/trash/trashSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     auth: authReducer,
     like: likeReducer, 
     error: errorReducer, 
+    trash: trashReducer,
   },
 });
 

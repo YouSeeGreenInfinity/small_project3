@@ -1,13 +1,17 @@
 import type { AxiosInstance } from 'axios';
-import type { PostFormType, PostType } from '../types/postTypes';
+import type { PostFormType, PostType, PostsResponse } from '../types/postTypes';
 import axiosInstance from './apiInstance';
+
 
 class PostsService {
   constructor(private readonly apiInstance: AxiosInstance) {}
 
-  async getPosts(): Promise<PostType[]> {
+   async getPosts(page: number = 1, limit: number = 10): Promise<PostType[]> {
     try {
-      const response = await this.apiInstance.get<PostType[]>('/posts');
+      console.log(`🔄 Fetching posts page ${page}, limit ${limit}`);
+      const response = await this.apiInstance.get<PostType[]>(
+        `/posts?page=${page}&limit=${limit}` // ✅ ДОБАВЬ ПАРАМЕТРЫ
+      );
       console.log('📥 GET Posts response:', response.status, response.data);
       return response.data;
     } catch (error) {
@@ -53,43 +57,6 @@ class PostsService {
     }
   }
 
-
-  // async publishPost(id: PostType['id']): Promise<PostType> {
-  //   try {
-  //     console.log('🔄 Publishing post:', id);
-  //     const response = await this.apiInstance.patch<PostType>(`/posts/${id}/publish`);
-  //     console.log('✅ Post published successfully, response:', response.data);
-      
-  //     // ✅ ПРОВЕРЬ ЧТО В ОТВЕТЕ ЕСТЬ id
-  //     if (!response.data.id) {
-  //       throw new Error('Invalid response: post id is missing');
-  //     }
-      
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('❌ Publish post error:', error);
-  //     return Promise.reject(error);
-  //   }
-  // }
-
-  // async publishPost(id: PostType['id']): Promise<PostType> {
-  //   try {
-  //     console.log('🔄 Publishing post:', id);
-  //     const response = await this.apiInstance.patch<PostType>(`/posts/${id}/publish`);
-  //     console.log('✅ Post published successfully, response:', response.data);
-      
-  //     // ✅ ПРОВЕРЬ ЧТО В ОТВЕТЕ ЕСТЬ id
-  //     if (!response.data.id) {
-  //       throw new Error('Invalid response: post id is missing');
-  //     }
-      
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('❌ Publish post error:', error);
-  //     return Promise.reject(error);
-  //   }
-  // }
-
   async publishPost(id: PostType['id']): Promise<PostType> {
     try {
       console.log('🔄 Publishing post:', id);
@@ -119,6 +86,45 @@ async getPublishedPosts(page: number = 1, limit: number = 6): Promise<PostsRespo
     return response.data;
   } catch (error) {
     console.error('❌ Get published posts error:', error);
+    return Promise.reject(error);
+  }
+}
+
+// ✅ ПЕРЕМЕСТИТЬ В КОРЗИНУ
+async moveToTrash(id: PostType['id']): Promise<PostType> {
+  try {
+    console.log('🗑️ Moving post to trash:', id);
+    const response = await this.apiInstance.patch<PostType>(`/posts/${id}/trash`);
+    console.log('✅ Post moved to trash:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Move to trash error:', error);
+    return Promise.reject(error);
+  }
+}
+
+// ✅ ВОССТАНОВИТЬ ИЗ КОРЗИНЫ
+async restoreFromTrash(id: PostType['id']): Promise<PostType> {
+  try {
+    console.log('🔄 Restoring post from trash:', id);
+    const response = await this.apiInstance.patch<PostType>(`/posts/${id}/restore`);
+    console.log('✅ Post restored:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Restore from trash error:', error);
+    return Promise.reject(error);
+  }
+}
+
+// ✅ ПОЛУЧИТЬ КОРЗИНУ ПОЛЬЗОВАТЕЛЯ
+async getUserTrash(): Promise<PostType[]> {
+  try {
+    console.log('📦 Getting user trash');
+    const response = await this.apiInstance.get<PostType[]>('/posts/user/trash');
+    console.log('✅ User trash retrieved:', response.data.length, 'posts');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Get user trash error:', error);
     return Promise.reject(error);
   }
 }
