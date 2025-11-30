@@ -10,12 +10,13 @@ import { Favorite, FavoriteBorder, Edit, Delete } from '@mui/icons-material';
 import * as React from 'react';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { toggleModal } from '../../redux/slices/posts/postsSlice';
-import { deletePostThunk, getPostsThunk, publishPostThunk } from '../../redux/slices/posts/postsThunks';
+import { deletePostThunk, getPostsThunk, getPublishedPostsThunk, publishPostThunk } from '../../redux/slices/posts/postsThunks';
 import { toggleLikeThunk, getLikesCountThunk } from '../../redux/slices/like/likeThunks';
 import type { PostType } from '../../types/postTypes';
 import PublishButton from './PublishButton';
 import { addToTrash } from '../../redux/slices/trash/trashSlice';
 import { moveToTrashThunk } from '../../redux/slices/trash/trashThunks';
+import { useLocation } from 'react-router-dom';
 
 type PostCardPropsType = {
   post: PostType;
@@ -23,6 +24,7 @@ type PostCardPropsType = {
 
 function PostCard({ post }: PostCardPropsType): JSX.Element {
   const dispatch = useAppDispatch();
+  const location = useLocation();
 
   // Получаем данные из Redux store
   const user = useAppSelector((store) => store.auth.user);
@@ -55,22 +57,34 @@ function PostCard({ post }: PostCardPropsType): JSX.Element {
     void dispatch(toggleLikeThunk(post.id));
   };
 
-  // Обработчик удаления, ниже заменил его на переместить в корзину
-  // const handleDelete = (): void => {
-  //   if (window.confirm('Are you sure you want to delete this post?')) {
-  //     void dispatch(deletePostThunk(post.id));
-  //   }
-  // };
-
   const handleMoveToTrash = (): void => {
     if (window.confirm('Переместить пост в корзину?')) {
       void dispatch(moveToTrashThunk({ postId: post.id, post }))
         .unwrap()
         .then(() => {
-          void dispatch(getPostsThunk());
+          // ✅ ОПРЕДЕЛЯЕМ КАКУЮ СТРАНИЦУ ОБНОВЛЯТЬ
+          const currentPath = location.pathname;
+          
+          if (currentPath === '/' || currentPath.includes('/published')) {
+            // Главная страница или страница опубликованных
+            console.log('🔄 Updating published posts for index page');
+            void dispatch(getPublishedPostsThunk({ page: 1, limit: 6 }));
+          } else if (currentPath.includes('/posts')) {
+            // Страница всех постов
+            console.log('🔄 Updating all posts for posts page');
+            void dispatch(getPostsThunk());
+          } else {
+            // По умолчанию обновляем оба списка
+            console.log('🔄 Updating both post lists');
+            void dispatch(getPostsThunk());
+            void dispatch(getPublishedPostsThunk({ page: 1, limit: 6 }));
+          }
+          
+          console.log('✅ Post moved to trash and lists updated:', post.id);
         })
         .catch((error) => {
           console.error('❌ Move to trash failed:', error);
+          alert('Ошибка при перемещении в корзину');
         });
     }
   };

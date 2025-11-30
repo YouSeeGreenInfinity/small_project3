@@ -24,3 +24,28 @@ export const moveToTrashThunk = createAsyncThunk(
     }
   }
 );
+
+export const restoreFromTrashThunk = createAsyncThunk(
+    'trash/restoreFromTrash',
+    async (postId: number, { dispatch }) => {
+      try {
+        console.log('🔄 Restoring post from trash:', postId);
+        
+        // Восстанавливаем на сервере
+        await postsService.restoreFromTrash(postId);
+        
+        // Удаляем из локальной корзины
+        dispatch(restoreFromTrash(postId));
+        
+        // Обновляем основной список
+        void dispatch(getPostsThunk());
+        
+        console.log('✅ Post restored successfully:', postId);
+        
+        return postId;
+      } catch (error: any) {
+        console.error('❌ Restore from trash failed:', error);
+        throw new Error(error.message || 'Failed to restore from trash');
+      }
+    }
+  );
